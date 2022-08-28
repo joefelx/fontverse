@@ -40,13 +40,14 @@ app.post("/api/font", async (req, res) => {
   const fontFamily = req.body.fontFamily;
 
   try {
-    fontFamily.forEach((font) => {
-      getFont(font);
+    fontFamily.forEach(async (font) => {
+      await getFont(font);
     });
-    res.status(200).json({
-      status: "success",
-      bundle: "created",
-    });
+    // res.status(200).json({
+    //   status: "success",
+    //   bundle: "created",
+    // });
+    res.status(200).sendFile(__dirname + "/public" + "/styles.css");
   } catch (error) {
     res.status(500).json({
       status: "failed",
