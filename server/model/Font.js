@@ -13,9 +13,16 @@ const FontSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    fontWeights: {
-      type: Array,
-      default: [],
+    fontWeight: {
+      type: String,
+    },
+    fontStyle: {
+      type: String,
+      default: "normal",
+    },
+    fontUrl: {
+      type: String,
+      required: true,
     },
     price: {
       type: String,

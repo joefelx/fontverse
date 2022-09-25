@@ -2,11 +2,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const path = require("path");
+const cors = require("cors");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const Font = require("./model/Font");
-
-const { getFont, writeCss } = require("./functions");
+const fontRouter = require("./router/font");
+const projectRouter = require("./router/project");
 
 // App setup
 dotenv.config();
@@ -14,9 +15,25 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "Content-Type",
+    "Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  next();
+});
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(morgan("tiny"));
+app.use(cors());
 
 // Database Connection
 mongoose.connect(
@@ -34,51 +51,8 @@ mongoose.connect(
 app.get("/", (req, res) => {
   res.sendFile("index.html");
 });
-
-// Sending the requested fonts
-app.post("/api/font", async (req, res) => {
-  const fontFamily = req.body.fontFamily;
-
-  try {
-    fontFamily.forEach(async (font) => {
-      await getFont(font);
-    });
-    // res.status(200).json({
-    //   status: "success",
-    //   bundle: "created",
-    // });
-    res.status(200).sendFile(__dirname + "/public" + "/styles.css");
-  } catch (error) {
-    res.status(500).json({
-      status: "failed",
-      bundle: "not created",
-      data: error,
-    });
-  }
-});
-
-// Sending the styles
-app.get("/api/font/style", (req, res) => {
-  res.status(200).sendFile(__dirname + "/public" + "/styles.css");
-});
-
-// Upload the files to server
-app.post("/api/upload/font", async (req, res) => {
-  const newFont = new Font(req.body);
-  try {
-    // create new font object
-    const savedFont = await newFont.save();
-    res.status(200).json({
-      status: "success",
-      data: savedFont,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "failed",
-      data: error,
-    });
-  }
-});
+app.use("/api/font", fontRouter);
+app.use("/api/project", projectRouter);
 
 // Connection
 app.listen(PORT, (req, res) => {
